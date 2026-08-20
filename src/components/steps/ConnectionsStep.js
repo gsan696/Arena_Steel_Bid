@@ -1,41 +1,17 @@
 "use client";
 
 import { Link2 } from "lucide-react";
-import { STEPS, CONNECTION_RATES } from "@/lib/constants";
-import { connectionCost, money } from "@/lib/calc";
-import { SAMPLE_CONNECTIONS } from "@/lib/sampleData";
+import { CONNECTION_TYPES, STEPS } from "@/lib/constants";
+import { formatNumber } from "@/lib/calc";
 import { useProjectStore } from "@/store/useProjectStore";
-import { Button, Card, Field, Input, Stat, StepHeading, Textarea } from "../ui";
-
-const FIELDS = [
-  {
-    key: "typicalShear",
-    label: "Typical shear",
-    hint: `Allowance ${money(CONNECTION_RATES.typicalShear)} ea`,
-  },
-  {
-    key: "moment",
-    label: "Moment connections",
-    hint: `Allowance ${money(CONNECTION_RATES.moment)} ea`,
-  },
-  {
-    key: "braced",
-    label: "Braced frame",
-    hint: `Allowance ${money(CONNECTION_RATES.braced)} ea`,
-  },
-  {
-    key: "basePlates",
-    label: "Base plates",
-    hint: `Allowance ${money(CONNECTION_RATES.basePlates)} ea`,
-  },
-];
+import { Card, Field, Input, Select, Stat, StepHeading } from "../ui";
 
 export default function ConnectionsStep() {
   const step = STEPS[5];
   const connections = useProjectStore((s) => s.connections);
   const setConnections = useProjectStore((s) => s.setConnections);
-  const mtoItems = useProjectStore((s) => s.mto.items);
-  const cost = connectionCost(connections);
+  const count = Number(connections.count) || 0;
+  const type = connections.type || "Simple";
 
   return (
     <div>
@@ -43,53 +19,57 @@ export default function ConnectionsStep() {
         icon={Link2}
         title={step.title}
         description={step.description}
-        action={
-          <Button
-            variant="outline"
-            onClick={() => setConnections({ ...SAMPLE_CONNECTIONS })}
-          >
-            Load typical counts
-          </Button>
-        }
       />
 
-      <div className="mb-5">
+      <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <Stat
-          label="Connection allowance"
-          value={money(cost)}
+          label="Number of connections"
+          value={formatNumber(count)}
+        />
+        <Stat
+          label="Connection type"
+          value={type}
           hint={
-            mtoItems.length
-              ? "Based on current connection quantities"
-              : "Load typical counts or enter quantities manually"
+            type === "Complex"
+              ? "Complex connections typically take more detailing time"
+              : "Simple shear / standard details"
           }
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {FIELDS.map((field) => (
-          <Card key={field.key} className="p-4">
-            <Field label={field.label} hint={field.hint}>
-              <Input
-                type="number"
-                min="0"
-                value={connections[field.key]}
-                onChange={(e) =>
-                  setConnections({ [field.key]: Number(e.target.value) })
-                }
-              />
-            </Field>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="mt-5 p-5">
-        <Field label="Connection notes">
-          <Textarea
-            value={connections.notes}
-            placeholder="Moment connections at rigid frame grid lines. Typical shear tabs elsewhere."
-            onChange={(e) => setConnections({ notes: e.target.value })}
-          />
-        </Field>
+      <Card className="p-5">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="Number of connections"
+            hint="Total connections to be detailed"
+          >
+            <Input
+              type="number"
+              min="0"
+              step="1"
+              value={connections.count}
+              onChange={(e) =>
+                setConnections({ count: Number(e.target.value) })
+              }
+            />
+          </Field>
+          <Field label="Connection type">
+            <Select
+              value={type}
+              onChange={(e) => setConnections({ type: e.target.value })}
+            >
+              {CONNECTION_TYPES.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+        <p className="mt-4 text-xs leading-5 text-zinc-500">
+          Connection counts are stored for the bid report. Hours and fee are
+          entered on the next steps.
+        </p>
       </Card>
     </div>
   );

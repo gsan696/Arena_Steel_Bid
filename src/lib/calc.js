@@ -1,4 +1,4 @@
-import { CONNECTION_RATES } from "./constants";
+import { RATE_TIERS } from "./constants";
 
 export function lineWeightLbs(item) {
   const qty = Number(item.qty) || 0;
@@ -15,45 +15,38 @@ export function totalTons(items = []) {
 }
 
 export function hoursTotal(hours = {}) {
+  return (Number(hours.structural) || 0) + (Number(hours.misc) || 0);
+}
+
+export function getRateTier(pricing = {}) {
   return (
-    (Number(hours.modeling) || 0) +
-    (Number(hours.detailing) || 0) +
-    (Number(hours.checking) || 0) +
-    (Number(hours.connectionDesign) || 0) +
-    (Number(hours.projectManagement) || 0)
+    RATE_TIERS.find((tier) => tier.id === pricing.rateTier) || RATE_TIERS[0]
   );
 }
 
-export function laborCost(hours = {}) {
-  return hoursTotal(hours) * (Number(hours.hourlyRate) || 0);
+export function selectedRate(pricing = {}) {
+  return getRateTier(pricing).rate;
 }
 
-export function connectionCost(connections = {}) {
-  return (
-    (Number(connections.typicalShear) || 0) * CONNECTION_RATES.typicalShear +
-    (Number(connections.moment) || 0) * CONNECTION_RATES.moment +
-    (Number(connections.braced) || 0) * CONNECTION_RATES.braced +
-    (Number(connections.basePlates) || 0) * CONNECTION_RATES.basePlates
-  );
+export function estimatedFee(hours = {}, pricing = {}) {
+  return hoursTotal(hours) * selectedRate(pricing);
 }
 
-export function bidBreakdown({ hours, pricing, connections }) {
-  const labor = laborCost(hours);
-  const connCost = connectionCost(connections);
-  const expenses = Number(pricing?.expenses) || 0;
-  const sub = labor + connCost + expenses;
-  const contingency =
-    sub * ((Number(pricing?.contingencyPct) || 0) / 100);
-  const afterCont = sub + contingency;
-  const markup = afterCont * ((Number(pricing?.markupPct) || 0) / 100);
+export function bidBreakdown({ hours, pricing }) {
+  const structuralHours = Number(hours?.structural) || 0;
+  const miscHours = Number(hours?.misc) || 0;
+  const hoursSum = structuralHours + miscHours;
+  const tier = getRateTier(pricing);
+  const total = hoursSum * tier.rate;
   return {
-    labor,
-    connCost,
-    expenses,
-    sub,
-    contingency,
-    markup,
-    total: afterCont + markup,
+    structuralHours,
+    miscHours,
+    hours: hoursSum,
+    rate: tier.rate,
+    rateTier: tier.id,
+    rateLabel: tier.label,
+    labor: total,
+    total,
   };
 }
 
@@ -81,25 +74,4 @@ export function formatBytes(bytes) {
     units.length - 1
   );
   return `${(bytes / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
-}
-
-export function estimateHoursFromTons(tons) {
-  const t = Math.max(Number(tons) || 0, 0);
-  const round = (n) => Math.max(1, Math.round(n));
-  if (t === 0) {
-    return {
-      modeling: 0,
-      detailing: 0,
-      checking: 0,
-      connectionDesign: 0,
-      projectManagement: 0,
-    };
-  }
-  return {
-    modeling: round(t * 2.4),
-    detailing: round(t * 8.2),
-    checking: round(t * 3.1),
-    connectionDesign: round(t * 1.6),
-    projectManagement: round(t * 1.2),
-  };
 }

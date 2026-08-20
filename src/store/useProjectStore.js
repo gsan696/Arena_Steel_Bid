@@ -42,27 +42,17 @@ const emptyMtoReview = {
 };
 
 const emptyConnections = {
-  typicalShear: 0,
-  moment: 0,
-  braced: 0,
-  basePlates: 0,
-  notes: "",
+  count: 0,
+  type: "Simple",
 };
 
 const emptyHours = {
-  modeling: 0,
-  detailing: 0,
-  checking: 0,
-  connectionDesign: 0,
-  projectManagement: 0,
-  hourlyRate: 85,
+  structural: 0,
+  misc: 0,
 };
 
 const emptyPricing = {
-  contingencyPct: 10,
-  markupPct: 15,
-  expenses: 0,
-  notes: "",
+  rateTier: "standard",
 };
 
 const emptyBidDocuments = {
@@ -187,15 +177,24 @@ export const useProjectStore = create(
     }),
     {
       name: "arena-steel-bid-store",
-      version: 2,
+      version: 3,
       migrate: (persistedState, version) => {
+        let next = persistedState;
         if (version < 2) {
-          return {
-            ...persistedState,
+          next = {
+            ...next,
             mto: { status: "idle", items: [], generatedAt: null },
           };
         }
-        return persistedState;
+        if (version < 3) {
+          next = {
+            ...next,
+            connections: { count: 0, type: "Simple" },
+            hours: { structural: 0, misc: 0 },
+            pricing: { rateTier: "standard" },
+          };
+        }
+        return next;
       },
     }
   )

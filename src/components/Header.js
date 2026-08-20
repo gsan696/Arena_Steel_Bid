@@ -20,9 +20,8 @@ export default function Header() {
   const client = useProjectStore((s) => s.client);
   const hours = useProjectStore((s) => s.hours);
   const pricing = useProjectStore((s) => s.pricing);
-  const connections = useProjectStore((s) => s.connections);
   const resetProject = useProjectStore((s) => s.resetProject);
-  const total = bidBreakdown({ hours, pricing, connections }).total;
+  const total = bidBreakdown({ hours, pricing }).total;
   const projectLabel = client.projectName || "Untitled project";
 
   return (
@@ -58,7 +57,7 @@ export default function Header() {
               Live bid
             </div>
             <div className="font-mono text-sm text-amber-400">
-              {money(total)}
+              {money(total, 2)}
             </div>
           </div>
           <Button

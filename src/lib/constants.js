@@ -45,7 +45,7 @@ export const STEPS = [
     label: "CONNECTIONS",
     title: "Connections",
     description:
-      "Quantify typical shear, moment, braced-frame, and base-plate connections for the bid.",
+      "Record how many connections are in the job and whether they are Simple or Complex.",
   },
   {
     id: 6,
@@ -53,7 +53,7 @@ export const STEPS = [
     label: "HOURS",
     title: "Hours Estimate",
     description:
-      "Estimate modeling, detailing, checking, connection design, and project management hours.",
+      "Enter estimated hours for structural and miscellaneous steel. Total hours feeds the pricing step.",
   },
   {
     id: 7,
@@ -61,7 +61,7 @@ export const STEPS = [
     label: "PRICING",
     title: "Pricing",
     description:
-      "Apply labor rates, connection allowances, contingency, and markup to produce the bid total.",
+      "Choose a rate tier. The estimated fee is Total Hours × the selected hourly rate.",
   },
   {
     id: 8,
@@ -73,9 +73,17 @@ export const STEPS = [
   },
 ];
 
-export const CONNECTION_RATES = {
-  typicalShear: 125,
-  moment: 450,
-  braced: 280,
-  basePlates: 200,
-};
+export const CONNECTION_TYPES = ["Simple", "Complex"];
+
+export const RATE_TIERS = [
+  {
+    id: "standard",
+    rate: 18,
+    label: "Standard Rate ($18/hr) - Low Complexity",
+  },
+  {
+    id: "premium",
+    rate: 26,
+    label: "Premium Rate ($26/hr) - High Complexity",
+  },
+];

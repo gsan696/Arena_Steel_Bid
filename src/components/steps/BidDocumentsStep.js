@@ -33,7 +33,7 @@ export default function BidDocumentsStep() {
   const { client, mto, hours, pricing, connections, review, bidDocuments, setBidDocuments } =
     store;
   const [busy, setBusy] = useState("");
-  const breakdown = bidBreakdown({ hours, pricing, connections });
+  const breakdown = bidBreakdown({ hours, pricing });
   const tons = totalTons(mto.items);
 
   async function exportPdf() {
@@ -81,14 +81,14 @@ export default function BidDocumentsStep() {
         y += 8;
         autoTable(doc, {
           startY: y,
-          head: [["Mark", "Description", "Size", "Grade", "Qty", "Weight (lb)"]],
+          head: [["Category", "Description", "Size", "Qty", "Unit wt", "Total (lb)"]],
           body: mto.items.map((item) => [
-            item.mark,
+            item.category,
             item.description,
             item.size,
-            item.grade,
             String(item.qty),
-            formatNumber(lineWeightLbs(item)),
+            formatNumber(item.weight, 2),
+            formatNumber(lineWeightLbs(item), 2),
           ]),
           styles: { fontSize: 8 },
           headStyles: { fillColor: [180, 110, 20] },
@@ -99,7 +99,7 @@ export default function BidDocumentsStep() {
       if (bidDocuments.includeHours) {
         doc.setFont("helvetica", "bold");
         doc.text(
-          `Hours: ${formatNumber(hoursTotal(hours), 1)}  |  Labor ${money(breakdown.labor)}`,
+          `Hours: Structural ${formatNumber(breakdown.structuralHours, 1)}  |  Misc ${formatNumber(breakdown.miscHours, 1)}  |  Total ${formatNumber(hoursTotal(hours), 1)}`,
           48,
           y
         );
@@ -109,12 +109,12 @@ export default function BidDocumentsStep() {
       if (bidDocuments.includePricing) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(13);
-        doc.text(`Bid total  ${money(breakdown.total)}`, 48, y);
+        doc.text(`Total estimated fee  ${money(breakdown.total, 2)}`, 48, y);
         y += 16;
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
         doc.text(
-          `Tonnage ${formatNumber(tons, 2)} t   Contingency ${pricing.contingencyPct}%   Markup ${pricing.markupPct}%`,
+          `${breakdown.rateLabel}  |  ${formatNumber(breakdown.hours, 1)} hrs × ${money(breakdown.rate, 0)}/hr  |  ${formatNumber(connections.count || 0)} ${connections.type || "Simple"} connections  |  ${formatNumber(tons, 2)} t`,
           48,
           y
         );
@@ -172,18 +172,14 @@ export default function BidDocumentsStep() {
       if (bidDocuments.includeHours || bidDocuments.includePricing) {
         const priceSheet = XLSX.utils.json_to_sheet([
           {
-            Modeling: hours.modeling,
-            Detailing: hours.detailing,
-            Checking: hours.checking,
-            ConnectionDesign: hours.connectionDesign,
-            ProjectManagement: hours.projectManagement,
-            HourlyRate: hours.hourlyRate,
-            Labor: breakdown.labor,
-            Connections: breakdown.connCost,
-            Expenses: breakdown.expenses,
-            Contingency: breakdown.contingency,
-            Markup: breakdown.markup,
-            Total: breakdown.total,
+            StructuralHours: breakdown.structuralHours,
+            MiscHours: breakdown.miscHours,
+            TotalHours: breakdown.hours,
+            RateTier: breakdown.rateLabel,
+            HourlyRate: breakdown.rate,
+            ConnectionCount: connections.count,
+            ConnectionType: connections.type,
+            TotalEstimatedFee: breakdown.total,
           },
         ]);
         XLSX.utils.book_append_sheet(wb, priceSheet, "Pricing");
@@ -241,7 +237,7 @@ export default function BidDocumentsStep() {
         <Card className="p-5 lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-zinc-200">Deliverables</h3>
-            <Badge tone="heat">{money(breakdown.total)}</Badge>
+            <Badge tone="heat">{money(breakdown.total, 2)}</Badge>
           </div>
           <p className="mb-5 text-sm leading-6 text-zinc-400">
             Export a proposal PDF and an Excel workbook from the current
