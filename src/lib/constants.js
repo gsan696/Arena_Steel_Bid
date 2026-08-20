@@ -29,7 +29,7 @@ export const STEPS = [
     label: "GENERATE MTO",
     title: "Generate MTO",
     description:
-      "Build a material takeoff of members, plates, and miscellaneous steel from the reviewed scope.",
+      "Add takeoff lines by category. Total weight is quantity × weight per unit, rolled up for Structural and Misc.",
   },
   {
     id: 4,

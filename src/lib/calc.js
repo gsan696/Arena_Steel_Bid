@@ -2,10 +2,8 @@ import { CONNECTION_RATES } from "./constants";
 
 export function lineWeightLbs(item) {
   const qty = Number(item.qty) || 0;
-  const length = Number(item.length) || 0;
   const weight = Number(item.weight) || 0;
-  if (item.unit === "lb/ea") return qty * weight;
-  return qty * length * weight;
+  return qty * weight;
 }
 
 export function totalLbs(items = []) {

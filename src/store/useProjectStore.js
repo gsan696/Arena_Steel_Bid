@@ -136,6 +136,24 @@ export const useProjectStore = create(
       setMto: (patch) =>
         set((state) => ({ mto: { ...state.mto, ...patch } })),
 
+      addMtoRow: (row) =>
+        set((state) => ({
+          mto: {
+            ...state.mto,
+            status: "complete",
+            generatedAt: state.mto.generatedAt || new Date().toISOString(),
+            items: [...state.mto.items, row],
+          },
+        })),
+
+      removeMtoRow: (id) =>
+        set((state) => ({
+          mto: {
+            ...state.mto,
+            items: state.mto.items.filter((item) => item.id !== id),
+          },
+        })),
+
       updateMtoItem: (id, patch) =>
         set((state) => ({
           mto: {
@@ -169,7 +187,16 @@ export const useProjectStore = create(
     }),
     {
       name: "arena-steel-bid-store",
-      version: 1,
+      version: 2,
+      migrate: (persistedState, version) => {
+        if (version < 2) {
+          return {
+            ...persistedState,
+            mto: { status: "idle", items: [], generatedAt: null },
+          };
+        }
+        return persistedState;
+      },
     }
   )
 );

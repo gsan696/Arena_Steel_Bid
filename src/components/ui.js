@@ -73,6 +73,14 @@ export function Textarea({ className, ...props }) {
   );
 }
 
+export function Select({ className, children, ...props }) {
+  return (
+    <select className={cn(controlClass, className)} {...props}>
+      {children}
+    </select>
+  );
+}
+
 export function Badge({ tone = "neutral", children }) {
   const tones = {
     neutral: "bg-white/6 text-zinc-300 ring-white/10",

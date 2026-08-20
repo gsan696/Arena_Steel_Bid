@@ -158,16 +158,12 @@ export default function BidDocumentsStep() {
       if (bidDocuments.includeMto) {
         const mtoSheet = XLSX.utils.json_to_sheet(
           mto.items.map((item) => ({
-            Mark: item.mark,
             Category: item.category,
             Description: item.description,
-            Size: item.size,
-            Grade: item.grade,
-            Qty: item.qty,
-            Length: item.length,
-            Unit: item.unit,
-            WeightEach: item.weight,
-            TotalLb: lineWeightLbs(item),
+            "Section/Size": item.size,
+            "Weight per Unit (lbs)": item.weight,
+            Quantity: item.qty,
+            "Total Weight (lbs)": lineWeightLbs(item),
           }))
         );
         XLSX.utils.book_append_sheet(wb, mtoSheet, "MTO");
